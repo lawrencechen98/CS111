@@ -1,0 +1,34 @@
+NAME: Lawrence Chen
+EMAIL: lawrencechen98@gmail.com
+ID: XXXXXXXXX
+
+Description of Files:
+lab1a.c
+	Source code for the program. It is a character-at-a-time full duplex 
+	terminal I/O. Without --shell argument, the terminal simply writes each 
+	character back to the screen as it is typed and processed. With --shell
+	argument, a separate shell process is forked, and our inputs from the 
+	terminal are piped to the shell program. The shell processes the commands 
+	given, and outputs the result through a pipe back to the terminal, which 
+	then processes a character at a time to display to the terminal.
+
+Makefile
+	Contains shell commands to be executed with specific targets: default,
+	clean, and dist to build the program and the tarball.
+
+README
+	This file, which details information of the files of the project,
+	and the resources used for research.
+
+Resources:
+I used a lot of the manual pages and documents found on
+www.gnu.org and man7.org
+
+Additional to those man pages, I also used the following:
+Info on pipe()
+https://www.systutorials.com/docs/linux/man/2-pipe/
+Info on tcsetattr()
+https://www.mkssoftware.com/docs/man3/tcsetattr.3.asp
+Info on poll()
+http://pubs.opengroup.org/onlinepubs/9699919799/functions/poll.html
+

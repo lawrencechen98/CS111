@@ -1,0 +1,23 @@
+NAME: Lawrence Chen
+EMAIL: lawrencechen98@gmail.com
+ID: XXXXXXXXX
+
+Beaglebone Serial Number: BBGW17090192
+MAC Address: 2c:f7:f1:06:6a:40
+
+Files Contained:
+
+my_beaglebone.jpg 
+selfie of me holding my Beaglebone.
+
+connected.png 
+screenshot showing that I gave it a name and configured network access.
+
+copy.png
+screenshot from a local session in which I copy a hello world program from my laptop/desktop to my Beaglebone.
+
+build_run.png
+screenshot in which I build and run a trivial (hello world) program.
+
+git.png 
+screenshot in which I install git and clone a repository.

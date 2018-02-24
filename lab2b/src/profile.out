@@ -1,0 +1,352 @@
+Total: 530 samples
+     427  80.6%  80.6%      529  99.8% list_thread
+      80  15.1%  95.7%       80  15.1% __strcmp_sse42
+      12   2.3%  97.9%       52   9.8% SortedList_insert
+       6   1.1%  99.1%       49   9.2% SortedList_lookup
+       3   0.6%  99.6%        3   0.6% _init
+       1   0.2%  99.8%        1   0.2% SortedList_length
+       1   0.2% 100.0%        1   0.2% _int_free
+       0   0.0% 100.0%        1   0.2% __GI_exit
+       0   0.0% 100.0%      529  99.8% __clone
+       0   0.0% 100.0%        1   0.2% __libc_start_main
+       0   0.0% 100.0%        1   0.2% __run_exit_handlers
+       0   0.0% 100.0%        1   0.2% _start
+       0   0.0% 100.0%        1   0.2% clean_up
+       0   0.0% 100.0%        1   0.2% main
+       0   0.0% 100.0%      529  99.8% start_thread
+ROUTINE ====================== list_thread in /u/cs/ugrad/lawrencc/Desktop/CS111/lab2b/lab2_list.c
+   427    529 Total samples (flat / cumulative)
+     .      .   65: void error_handler(char* func, int err) {
+     .      .   66: 	fprintf(stderr, "Error in %s: (%d)%s\n", func, err, strerror(err));
+     .      .   67: 	exit(1);
+     .      .   68: }
+     .      .   69: 
+---
+     .      .   70: void* list_thread(void *arg) {
+     .      .   71: 	int* tid = (int *) arg;
+     .      .   72: 	struct timespec start;
+     .      .   73: 	struct timespec end;
+     .      .   74: 
+     .      .   75: 	for (int i = *tid; i < num_elements; i += num_threads) {
+     .      .   76: 		int hash = (shared_elements[i].key[0] + shared_elements[i].key[1] + shared_elements[i].key[2]);
+     .      .   77: 		int bucket = abs(hash % num_lists);
+     .      .   78: 		switch (opt_sync) {
+     .      .   79: 			case NO_LOCK: 
+     .      .   80: 				SortedList_insert(&shared_lists[bucket].list, &shared_elements[i]);
+     .      .   81: 				break;
+     .      .   82: 			case MUTEX:
+     .      .   83: 				if (clock_gettime(CLOCK_MONOTONIC, &start) == -1) {
+     .      .   84: 					error_handler("clock_gettime()", errno);
+     .      .   85: 				}
+     .      .   86: 				pthread_mutex_lock(&shared_lists[bucket].mutex);
+     .      .   87: 				if (clock_gettime(CLOCK_MONOTONIC, &end) == -1) {
+     .      .   88: 					error_handler("clock_gettime()", errno);
+     .      .   89: 				}
+     .      .   90: 				wait_times[(int) *tid] += ((end.tv_sec - start.tv_sec) * 1000000000 + (end.tv_nsec - start.tv_nsec));
+     .      .   91: 				SortedList_insert(&shared_lists[bucket].list, &shared_elements[i]);
+     .      .   92: 				pthread_mutex_unlock(&shared_lists[bucket].mutex);
+     .      .   93: 				break;
+     .      .   94: 			case SPIN_LOCK:
+     .      .   95: 				if (clock_gettime(CLOCK_MONOTONIC, &start) == -1) {
+     .      .   96: 					error_handler("clock_gettime()", errno);
+     .      .   97: 				}
+   339    339   98: 				while (__sync_lock_test_and_set(&shared_lists[bucket].lock, 1) == 1) ;
+     .      .   99: 				if (clock_gettime(CLOCK_MONOTONIC, &end) == -1) {
+     .      .  100: 					error_handler("clock_gettime()", errno);
+     .      .  101: 				}
+     1      1  102: 				wait_times[(int) *tid] += ((end.tv_sec - start.tv_sec) * 1000000000 + (end.tv_nsec - start.tv_nsec));
+     .     52  103: 				SortedList_insert(&shared_lists[bucket].list, &shared_elements[i]);
+     .      .  104: 				__sync_lock_release (&shared_lists[bucket].lock);	    
+     .      .  105: 				break;
+     .      .  106: 		}
+     .      .  107: 	}
+     .      .  108: 
+     .      .  109: 	switch (opt_sync) {
+     .      .  110: 		case MUTEX:
+     .      .  111: 			if (clock_gettime(CLOCK_MONOTONIC, &start) == -1) {
+     .      .  112: 				error_handler("clock_gettime()", errno);
+     .      .  113: 			}
+     .      .  114: 			for (int i = 0; i < num_lists; i++) 
+     .      .  115: 				pthread_mutex_lock(&shared_lists[i].mutex);
+     .      .  116: 			if (clock_gettime(CLOCK_MONOTONIC, &end) == -1) {
+     .      .  117: 				error_handler("clock_gettime()", errno);
+     .      .  118: 			}
+     .      .  119: 			wait_times[(int) *tid] += ((end.tv_sec - start.tv_sec) * 1000000000 + (end.tv_nsec - start.tv_nsec));
+     .      .  120: 			break;
+     .      .  121: 		case SPIN_LOCK:
+     .      .  122: 			if (clock_gettime(CLOCK_MONOTONIC, &start) == -1) {
+     .      .  123: 				error_handler("clock_gettime()", errno);
+     .      .  124: 			}
+     .      .  125: 			for (int i = 0; i < num_lists; i++) 
+     .      .  126: 				while (__sync_lock_test_and_set(&shared_lists[i].lock, 1) == 1) ;  
+     .      .  127: 			if (clock_gettime(CLOCK_MONOTONIC, &end) == -1) {
+     .      .  128: 				error_handler("clock_gettime()", errno);
+     .      .  129: 			}
+     .      .  130: 			wait_times[(int) *tid] += ((end.tv_sec - start.tv_sec) * 1000000000 + (end.tv_nsec - start.tv_nsec));
+     .      .  131: 			break;
+     .      .  132: 		default:
+     .      .  133: 			break;
+     .      .  134: 	}
+     .      .  135: 
+     .      .  136: 	int length = 0;
+     .      .  137: 	for (int i = 0; i < num_lists; i++) {
+     .      1  138: 		int sub_length = SortedList_length(&shared_lists[i].list);
+     .      .  139: 		if (sub_length < 0) {
+     .      .  140: 			fprintf(stderr, "Error: Corrupted list detected while getting length.\n");
+     .      .  141: 			exit(2);
+     .      .  142: 		}
+     .      .  143: 		length += sub_length;
+     .      .  144: 	}
+     .      .  145: 	if (length < 0) {
+     .      .  146: 		fprintf(stderr, "Error: Corrupted list detected while getting length.\n");
+     .      .  147: 		exit(2);
+     .      .  148: 	}
+     .      .  149: 
+     .      .  150: 	switch (opt_sync) {
+     .      .  151: 		case MUTEX:
+     .      .  152: 			for (int i = 0; i < num_lists; i++) 
+     .      .  153: 				pthread_mutex_unlock(&shared_lists[i].mutex);
+     .      .  154: 			break;
+     .      .  155: 		case SPIN_LOCK:
+     .      .  156: 			for (int i = 0; i < num_lists; i++) 
+     .      .  157: 				__sync_lock_release (&shared_lists[i].lock);	    
+     .      .  158: 			break;
+     .      .  159: 		default:
+     .      .  160: 			break;
+     .      .  161: 	}
+     .      .  162: 
+     .      .  163: 
+     .      .  164: 	SortedListElement_t *retrieved;
+     .      .  165: 	for (int i = *tid; i < num_elements; i += num_threads) {
+     .      .  166: 		int bucket = abs((shared_elements[i].key[0] + shared_elements[i].key[1] + shared_elements[i].key[2]) % num_lists);
+     .      .  167: 		switch (opt_sync) {
+     .      .  168: 			case NO_LOCK: 
+     .      .  169: 				retrieved = SortedList_lookup(&shared_lists[bucket].list, shared_elements[i].key);
+     .      .  170: 				if (retrieved == NULL) {
+     .      .  171: 					fprintf(stderr, "Error: Corrupted list. Specified element key not found.\n");
+     .      .  172: 					exit(2);
+     .      .  173: 				}
+     .      .  174: 				if (SortedList_delete(retrieved) == 1) {
+     .      .  175: 					fprintf(stderr, "Error: Corrupted list detected while deleting.\n");
+     .      .  176: 					exit(2);
+     .      .  177: 				}
+     .      .  178: 				break;
+     .      .  179: 			case MUTEX:
+     .      .  180: 				if (clock_gettime(CLOCK_MONOTONIC, &start) == -1) {
+     .      .  181: 					error_handler("clock_gettime()", errno);
+     .      .  182: 				}
+     .      .  183: 				pthread_mutex_lock(&shared_lists[bucket].mutex);
+     .      .  184: 				if (clock_gettime(CLOCK_MONOTONIC, &end) == -1) {
+     .      .  185: 					error_handler("clock_gettime()", errno);
+     .      .  186: 				}
+     .      .  187: 				wait_times[(int) *tid] += ((end.tv_sec - start.tv_sec) * 1000000000 + (end.tv_nsec - start.tv_nsec));
+     .      .  188: 				retrieved = SortedList_lookup(&shared_lists[bucket].list, shared_elements[i].key);
+     .      .  189: 				if (retrieved == NULL) {
+     .      .  190: 					fprintf(stderr, "Error: Corrupted list. Specified element key not found.\n");
+     .      .  191: 					exit(2);
+     .      .  192: 				}
+     .      .  193: 				if (SortedList_delete(retrieved) == 1) {
+     .      .  194: 					fprintf(stderr, "Error: Corrupted list detected while deleting.\n");
+     .      .  195: 					exit(2);
+     .      .  196: 				}
+     .      .  197: 				pthread_mutex_unlock(&shared_lists[bucket].mutex);
+     .      .  198: 				break;
+     .      .  199: 			case SPIN_LOCK:
+     .      .  200: 				if (clock_gettime(CLOCK_MONOTONIC, &start) == -1) {
+     .      .  201: 					error_handler("clock_gettime()", errno);
+     .      .  202: 				}
+    87     87  203: 				while (__sync_lock_test_and_set(&shared_lists[bucket].lock, 1) == 1) ;
+     .      .  204: 				if (clock_gettime(CLOCK_MONOTONIC, &end) == -1) {
+     .      .  205: 					error_handler("clock_gettime()", errno);
+     .      .  206: 				}
+     .      .  207: 				wait_times[(int) *tid] += ((end.tv_sec - start.tv_sec) * 1000000000 + (end.tv_nsec - start.tv_nsec));
+     .     49  208: 				retrieved = SortedList_lookup(&shared_lists[bucket].list, shared_elements[i].key);
+     .      .  209: 				if (retrieved == NULL) {
+     .      .  210: 					fprintf(stderr, "Error: Corrupted list. Specified element key not found.\n");
+     .      .  211: 					exit(2);
+     .      .  212: 				}
+     .      .  213: 				if (SortedList_delete(retrieved) == 1) {
+     .      .  214: 					fprintf(stderr, "Error: Corrupted list detected while deleting.\n");
+     .      .  215: 					exit(2);
+     .      .  216: 				}
+     .      .  217: 				__sync_lock_release (&shared_lists[bucket].lock);	    
+     .      .  218: 				break;
+     .      .  219: 		}
+     .      .  220: 	}
+     .      .  221: 
+     .      .  222: 	return NULL;
+     .      .  223: }
+---
+     .      .  224: 
+     .      .  225: int main(int argc, char **argv) {
+     .      .  226: 	if (atexit(clean_up) == -1) {
+     .      .  227: 		error_handler("atexit()", errno);
+     .      .  228: 	}
+ROUTINE ====================== list_thread in /u/cs/ugrad/lawrencc/Desktop/CS111/lab2b/lab2_list.c
+   427    529 Total samples (flat / cumulative)
+     .      .   65: void error_handler(char* func, int err) {
+     .      .   66: 	fprintf(stderr, "Error in %s: (%d)%s\n", func, err, strerror(err));
+     .      .   67: 	exit(1);
+     .      .   68: }
+     .      .   69: 
+---
+     .      .   70: void* list_thread(void *arg) {
+     .      .   71: 	int* tid = (int *) arg;
+     .      .   72: 	struct timespec start;
+     .      .   73: 	struct timespec end;
+     .      .   74: 
+     .      .   75: 	for (int i = *tid; i < num_elements; i += num_threads) {
+     .      .   76: 		int hash = (shared_elements[i].key[0] + shared_elements[i].key[1] + shared_elements[i].key[2]);
+     .      .   77: 		int bucket = abs(hash % num_lists);
+     .      .   78: 		switch (opt_sync) {
+     .      .   79: 			case NO_LOCK: 
+     .      .   80: 				SortedList_insert(&shared_lists[bucket].list, &shared_elements[i]);
+     .      .   81: 				break;
+     .      .   82: 			case MUTEX:
+     .      .   83: 				if (clock_gettime(CLOCK_MONOTONIC, &start) == -1) {
+     .      .   84: 					error_handler("clock_gettime()", errno);
+     .      .   85: 				}
+     .      .   86: 				pthread_mutex_lock(&shared_lists[bucket].mutex);
+     .      .   87: 				if (clock_gettime(CLOCK_MONOTONIC, &end) == -1) {
+     .      .   88: 					error_handler("clock_gettime()", errno);
+     .      .   89: 				}
+     .      .   90: 				wait_times[(int) *tid] += ((end.tv_sec - start.tv_sec) * 1000000000 + (end.tv_nsec - start.tv_nsec));
+     .      .   91: 				SortedList_insert(&shared_lists[bucket].list, &shared_elements[i]);
+     .      .   92: 				pthread_mutex_unlock(&shared_lists[bucket].mutex);
+     .      .   93: 				break;
+     .      .   94: 			case SPIN_LOCK:
+     .      .   95: 				if (clock_gettime(CLOCK_MONOTONIC, &start) == -1) {
+     .      .   96: 					error_handler("clock_gettime()", errno);
+     .      .   97: 				}
+   339    339   98: 				while (__sync_lock_test_and_set(&shared_lists[bucket].lock, 1) == 1) ;
+     .      .   99: 				if (clock_gettime(CLOCK_MONOTONIC, &end) == -1) {
+     .      .  100: 					error_handler("clock_gettime()", errno);
+     .      .  101: 				}
+     1      1  102: 				wait_times[(int) *tid] += ((end.tv_sec - start.tv_sec) * 1000000000 + (end.tv_nsec - start.tv_nsec));
+     .     52  103: 				SortedList_insert(&shared_lists[bucket].list, &shared_elements[i]);
+     .      .  104: 				__sync_lock_release (&shared_lists[bucket].lock);	    
+     .      .  105: 				break;
+     .      .  106: 		}
+     .      .  107: 	}
+     .      .  108: 
+     .      .  109: 	switch (opt_sync) {
+     .      .  110: 		case MUTEX:
+     .      .  111: 			if (clock_gettime(CLOCK_MONOTONIC, &start) == -1) {
+     .      .  112: 				error_handler("clock_gettime()", errno);
+     .      .  113: 			}
+     .      .  114: 			for (int i = 0; i < num_lists; i++) 
+     .      .  115: 				pthread_mutex_lock(&shared_lists[i].mutex);
+     .      .  116: 			if (clock_gettime(CLOCK_MONOTONIC, &end) == -1) {
+     .      .  117: 				error_handler("clock_gettime()", errno);
+     .      .  118: 			}
+     .      .  119: 			wait_times[(int) *tid] += ((end.tv_sec - start.tv_sec) * 1000000000 + (end.tv_nsec - start.tv_nsec));
+     .      .  120: 			break;
+     .      .  121: 		case SPIN_LOCK:
+     .      .  122: 			if (clock_gettime(CLOCK_MONOTONIC, &start) == -1) {
+     .      .  123: 				error_handler("clock_gettime()", errno);
+     .      .  124: 			}
+     .      .  125: 			for (int i = 0; i < num_lists; i++) 
+     .      .  126: 				while (__sync_lock_test_and_set(&shared_lists[i].lock, 1) == 1) ;  
+     .      .  127: 			if (clock_gettime(CLOCK_MONOTONIC, &end) == -1) {
+     .      .  128: 				error_handler("clock_gettime()", errno);
+     .      .  129: 			}
+     .      .  130: 			wait_times[(int) *tid] += ((end.tv_sec - start.tv_sec) * 1000000000 + (end.tv_nsec - start.tv_nsec));
+     .      .  131: 			break;
+     .      .  132: 		default:
+     .      .  133: 			break;
+     .      .  134: 	}
+     .      .  135: 
+     .      .  136: 	int length = 0;
+     .      .  137: 	for (int i = 0; i < num_lists; i++) {
+     .      1  138: 		int sub_length = SortedList_length(&shared_lists[i].list);
+     .      .  139: 		if (sub_length < 0) {
+     .      .  140: 			fprintf(stderr, "Error: Corrupted list detected while getting length.\n");
+     .      .  141: 			exit(2);
+     .      .  142: 		}
+     .      .  143: 		length += sub_length;
+     .      .  144: 	}
+     .      .  145: 	if (length < 0) {
+     .      .  146: 		fprintf(stderr, "Error: Corrupted list detected while getting length.\n");
+     .      .  147: 		exit(2);
+     .      .  148: 	}
+     .      .  149: 
+     .      .  150: 	switch (opt_sync) {
+     .      .  151: 		case MUTEX:
+     .      .  152: 			for (int i = 0; i < num_lists; i++) 
+     .      .  153: 				pthread_mutex_unlock(&shared_lists[i].mutex);
+     .      .  154: 			break;
+     .      .  155: 		case SPIN_LOCK:
+     .      .  156: 			for (int i = 0; i < num_lists; i++) 
+     .      .  157: 				__sync_lock_release (&shared_lists[i].lock);	    
+     .      .  158: 			break;
+     .      .  159: 		default:
+     .      .  160: 			break;
+     .      .  161: 	}
+     .      .  162: 
+     .      .  163: 
+     .      .  164: 	SortedListElement_t *retrieved;
+     .      .  165: 	for (int i = *tid; i < num_elements; i += num_threads) {
+     .      .  166: 		int bucket = abs((shared_elements[i].key[0] + shared_elements[i].key[1] + shared_elements[i].key[2]) % num_lists);
+     .      .  167: 		switch (opt_sync) {
+     .      .  168: 			case NO_LOCK: 
+     .      .  169: 				retrieved = SortedList_lookup(&shared_lists[bucket].list, shared_elements[i].key);
+     .      .  170: 				if (retrieved == NULL) {
+     .      .  171: 					fprintf(stderr, "Error: Corrupted list. Specified element key not found.\n");
+     .      .  172: 					exit(2);
+     .      .  173: 				}
+     .      .  174: 				if (SortedList_delete(retrieved) == 1) {
+     .      .  175: 					fprintf(stderr, "Error: Corrupted list detected while deleting.\n");
+     .      .  176: 					exit(2);
+     .      .  177: 				}
+     .      .  178: 				break;
+     .      .  179: 			case MUTEX:
+     .      .  180: 				if (clock_gettime(CLOCK_MONOTONIC, &start) == -1) {
+     .      .  181: 					error_handler("clock_gettime()", errno);
+     .      .  182: 				}
+     .      .  183: 				pthread_mutex_lock(&shared_lists[bucket].mutex);
+     .      .  184: 				if (clock_gettime(CLOCK_MONOTONIC, &end) == -1) {
+     .      .  185: 					error_handler("clock_gettime()", errno);
+     .      .  186: 				}
+     .      .  187: 				wait_times[(int) *tid] += ((end.tv_sec - start.tv_sec) * 1000000000 + (end.tv_nsec - start.tv_nsec));
+     .      .  188: 				retrieved = SortedList_lookup(&shared_lists[bucket].list, shared_elements[i].key);
+     .      .  189: 				if (retrieved == NULL) {
+     .      .  190: 					fprintf(stderr, "Error: Corrupted list. Specified element key not found.\n");
+     .      .  191: 					exit(2);
+     .      .  192: 				}
+     .      .  193: 				if (SortedList_delete(retrieved) == 1) {
+     .      .  194: 					fprintf(stderr, "Error: Corrupted list detected while deleting.\n");
+     .      .  195: 					exit(2);
+     .      .  196: 				}
+     .      .  197: 				pthread_mutex_unlock(&shared_lists[bucket].mutex);
+     .      .  198: 				break;
+     .      .  199: 			case SPIN_LOCK:
+     .      .  200: 				if (clock_gettime(CLOCK_MONOTONIC, &start) == -1) {
+     .      .  201: 					error_handler("clock_gettime()", errno);
+     .      .  202: 				}
+    87     87  203: 				while (__sync_lock_test_and_set(&shared_lists[bucket].lock, 1) == 1) ;
+     .      .  204: 				if (clock_gettime(CLOCK_MONOTONIC, &end) == -1) {
+     .      .  205: 					error_handler("clock_gettime()", errno);
+     .      .  206: 				}
+     .      .  207: 				wait_times[(int) *tid] += ((end.tv_sec - start.tv_sec) * 1000000000 + (end.tv_nsec - start.tv_nsec));
+     .     49  208: 				retrieved = SortedList_lookup(&shared_lists[bucket].list, shared_elements[i].key);
+     .      .  209: 				if (retrieved == NULL) {
+     .      .  210: 					fprintf(stderr, "Error: Corrupted list. Specified element key not found.\n");
+     .      .  211: 					exit(2);
+     .      .  212: 				}
+     .      .  213: 				if (SortedList_delete(retrieved) == 1) {
+     .      .  214: 					fprintf(stderr, "Error: Corrupted list detected while deleting.\n");
+     .      .  215: 					exit(2);
+     .      .  216: 				}
+     .      .  217: 				__sync_lock_release (&shared_lists[bucket].lock);	    
+     .      .  218: 				break;
+     .      .  219: 		}
+     .      .  220: 	}
+     .      .  221: 
+     .      .  222: 	return NULL;
+     .      .  223: }
+---
+     .      .  224: 
+     .      .  225: int main(int argc, char **argv) {
+     .      .  226: 	if (atexit(clean_up) == -1) {
+     .      .  227: 		error_handler("atexit()", errno);
+     .      .  228: 	}

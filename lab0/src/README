@@ -1,0 +1,77 @@
+NAME: Lawrence Chen
+EMAIL: lawrencechen98@gmail.com
+ID: XXXXXXXXX
+
+Description of Files:
+lab0.c
+	The C source code module that compiles to the project 0 program.
+	It copies standard input to standard output from file descriptor 0 to
+	file descriptor 1. It can also accept optional command line arguments
+	such as --input and --output filenames to redirect the standard input
+	and standard output respectively. With the --segfault flag, the program
+	forces a segmentation fault, which can be caught if a --catch flag is
+	specified.
+
+Makefile
+	Contains shell commands to be executed with specific targets: default,
+	check, clean, and dist to build the program and the tarball.
+
+README
+	This file, which details information of the files of the project, the
+	smoke tests I used, and the resources I used for research.
+
+backtrace.png
+	A screenshot showing a segfault and associated stack-trace of my
+	project's executable when ran with --segfault flag. It shows that the
+	program received a SIGSEGV signal at line 27.
+
+breakpoint.png
+	A screenshot showing a breakpoint and variable inspection of my
+	project's executable right before the code that would raise a
+	segmentation fault. A breakpoint was added at line 27, and the nullptr
+	can be seen pointing to memory address 0x0.
+
+Description of Smoke Tests:
+testReadWrite
+	Tests that the program works as intended, reading from a specified
+	--input file and writing to an --output file correctly, while exiting
+	with return code of 0.
+
+testInvalidOptions
+	Tests that program exits with return code 1 if given unrecognized
+	command line arguments.
+
+testInvalidInput
+	Test that program exits with return code 2 if given an nonexisting
+	filename for --input option.
+
+testInvalidOutput
+	Test that program exits with return code 3 if given an --output file
+	that is read-only and cannot be written to.
+
+testSegfaultCatch
+	Test that program exits with return code 4 if the segmentation fault is
+	caught with the --segfault and --catch flag.
+
+Resources Used:
+Info on getopt_long()
+http://www.informit.com/articles/article.aspx?p=175771&seqNum=3
+
+Info on dup()
+http://man7.org/linux/man-pages/man2/dup.2.html
+
+Info on errno()
+http://man7.org/linux/man-pages/man3/errno.3.html
+
+Info on signal()
+https://www.tutorialspoint.com/c_standard_library/c_function_signal.htm
+
+Info on strsignal()
+https://linux.die.net/man/3/strsignal
+
+Info on strerror()
+http://man7.org/linux/man-pages/man3/strerror.3.html
+
+Reminder on permissions
+https://forums.oscommerce.com/topic/65510-what-is-permission-644-444-777/
+

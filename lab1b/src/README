@@ -1,0 +1,46 @@
+NAME: Lawrence Chen
+EMAIL: lawrencechen98@gmail.com
+ID: XXXXXXXXX
+
+Description of Files:
+lab1b-server.c
+	Source code for the server side program. A separate shell process is forked, 
+	and our inputs from the client that is received through a TCP network socket 
+	are piped to the shell program. The shell processes the commands given, 
+	and outputs the result through a pipe back to the server program, which 
+	then sends back through the socket to the client. The port number for the 
+	socket is specified with --port option, and the --compress flag compresses
+	the data sent through the socket. 
+
+lab1b-client.c
+	Source code for the client side program. It is a non-canonical character
+	at a time terminal, that takes input and sends it through a socket to the
+	server program. The port number should match that of the server and is 
+	specified with the --port flag. --compress flag compresses the data
+	sent to the server, and decompresses responses. The output is received
+	from the server program and displayed onto the terminal. 
+
+Makefile
+	Contains shell commands to be executed with specific targets: default,
+	clean, and dist to build the program and the tarball. Also includes 
+	targets server and client to build only that respective executable.
+
+README
+	This file, which details information of the files of the project,
+	and the resources used for research.
+
+Resources:
+I used a lot of the manual pages and documents found on
+www.gnu.org and man7.org
+
+Additional to those man pages, I also used the following:
+Info on zlib
+https://www.zlib.net/manual.html
+Info on socket
+https://www.tutorialspoint.com/unix_sockets/socket_client_example.htm
+Info on memcpy()
+https://www.tutorialspoint.com/c_standard_library/c_function_memcpy.htm
+Info on poll()
+http://man7.org/linux/man-pages/man2/poll.2.html
+http://pubs.opengroup.org/onlinepubs/9699919799/functions/poll.html
+http://www.greenend.org.uk/rjk/tech/poll.html
