@@ -1,0 +1,34 @@
+NAME: Lawrence Chen,Nityan Bhorde
+EMAIL: lawrencechen98@gmail.com,nityanbhorde21@g.ucla.edu
+ID: 704767754,904793498
+
+INCLUDED FILES
+==============
+
+lab3a.c
+	Source file containing program that logs and reports summaries of file system image passed in as argument.
+
+ext2_fs.h
+	Provided header file of structs that are important and present in the ext2 file system.
+
+Makefile
+	Targets to compile and make program, clean directory, and create distribution tar file.
+
+README
+	This file. Contains information on included files and resources used.
+
+
+RESOURCES USED
+==============
+I used a lot of the manual pages and documents found on
+www.gnu.org and man7.org
+for information on pread
+
+Info on strftime
+https://www.tutorialspoint.com/c_standard_library/c_function_strftime.htm
+
+Info on gmtime
+https://www.tutorialspoint.com/c_standard_library/c_function_gmtime.htm
+
+Info on ext2 file system layout
+http://www.nongnu.org/ext2-doc/ext2.html#I-MODE
