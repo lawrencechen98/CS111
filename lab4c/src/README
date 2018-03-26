@@ -1,0 +1,23 @@
+NAME: Lawrence Chen
+EMAIL: lawrencechen98@gmail.com
+ID: 704767754
+
+INCLUDED FILES
+==============
+lab4c.c
+	Source file containing client programs to record temperature on Beaglebone and report logs to server. If compiled to lab4c_tcp, the program uses TCP sockets to connect to the server. If compiled to lab4c_tls, the program uses TLS in addition to the socket to securely communicate with the server.
+
+Makefile
+	Specifies targets to make both executable versions, clean directory, and make tarball for distribution.
+
+README
+	This file. Includes description about included files and resources used.
+
+
+RESOURCES USED
+==============
+For general documentation in using the OpenSSL SSL/TLS library
+https://www.openssl.org/docs/manmaster/man7/ssl.html
+
+To refresh on sockets
+https://www.tutorialspoint.com/unix_sockets/socket_client_example.htm

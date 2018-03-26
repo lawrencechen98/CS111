@@ -1,0 +1,21 @@
+NAME: Lawrence Chen,Nityan Bhorde
+EMAIL: lawrencechen98@gmail.com,nityanbhorde21@g.ucla.edu
+ID: 704767754,904793498
+
+INCLUDED FILES
+==============
+lab3b.py
+	Source file of program written in python 3. The file takes in a CSV file summarizing a file system, parses the reports, and analyzes the content for inconsistencies and corruption on the file system. The inconsistencies are then reported in detail to output. 
+
+Makefile
+	Defines standard targets for making the executable, cleaning directory, and creating distribution tar file.
+
+README
+	This file. Includes information and details on the included files in tar file, as well as resources used in this lab.
+
+
+RESOURCES USED
+==============
+I used alot of the documentation found on 
+docs.python.org/3/
+for python 3 syntax and details, such as open(), sys.exit(), csv.reader(), 'with' statements, print(), exception handling, etc.
